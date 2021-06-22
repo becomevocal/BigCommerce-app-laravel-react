@@ -9,6 +9,10 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Message;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Arr;
+use App\Models\Onboard;
+use App\Models\AppUser;
+
+// TODO: change db actions in order to facilitate Model usage for type consistency for the future.
 
 class AppController extends Controller
 {
@@ -136,11 +140,11 @@ class AppController extends Controller
 
         if (count($store) > 0) {
           $ref = DB::table('app_users')->where('store_hash', '=', $data['context'])->update(
-            ['user_id' => $data['user']['id'], 'store_hash' => $data['context'], 'access_token' => $data['access_token'], 'user_email' => $data['user']['email']]
+            ['user_id' => $data['user']['id'], 'store_hash' => $data['context'], 'access_token' => $data['access_token'], 'user_email' => $data['user']['email'], 'scope' => $data['scope']]
           );
         } else {
           $ref = DB::table('app_users')->insert(
-            ['user_id' => $data['user']['id'], 'store_hash' => $data['context'], 'access_token' => $data['access_token'], 'user_email' => $data['user']['email']]
+            ['user_id' => $data['user']['id'], 'store_hash' => $data['context'], 'access_token' => $data['access_token'], 'user_email' => $data['user']['email'], 'scope' => $data['scope']]
           );
         }
 
@@ -224,5 +228,96 @@ class AppController extends Controller
     $result = $this->makeBigCommerceAPIRequest($request, $endpoint);
 
     return response($result->getBody(), $result->getStatusCode())->header('Content-Type', 'application/json');
+  }
+
+  public function getOnboardedState(Request $request)
+  {
+    $storeHash = $this->getStoreHash($request);
+
+    $currentState = Onboard::firstWhere('store_hash', $storeHash);
+
+    if (empty($currentState)) {
+      $currentState =
+        [
+          "managedChannelId" => -1,
+          "platformAccessToken" => '',
+          "platformAccountId" => '',
+          "platformAnalyticsId" => '',
+          "platformBusinessId" => '',
+          "platformUserProfile" => '',
+          "status" => 'step_storefront_select',
+          "storefrontChannelId" => -1,
+        ];
+    }
+
+    return response()->json($currentState);
+  }
+
+  public function setOnboardedState(Request $request)
+  {
+    $storeHash = $this->getStoreHash($request);
+
+    $currentState = Onboard::firstOrCreate(
+      [
+        'store_hash' => $storeHash
+      ],
+      [
+        "managedChannelId" => -1,
+        "platformAccessToken" => '',
+        "platformAccountId" => '',
+        "platformAnalyticsId" => '',
+        "platformBusinessId" => '',
+        "platformUserProfile" => '',
+        "status" => 'step_storefront_select',
+        "storefrontChannelId" => -1,
+      ]
+    );
+
+    if ($request->has('status')) {
+      $currentState->status = $request->input('status');
+    }
+
+    if ($request->has('storefrontChannelId')) {
+      $currentState->storefrontChannelId = $request->input('storefrontChannelId');
+    }
+
+    if ($request->has('managedChannelId')) {
+      $currentState->managedChannelId = $request->input('managedChannelId');
+    }
+
+    if ($request->has('platformBusinessId')) {
+      $currentState->platformBusinessId = $request->input('platformBusinessId');
+    }
+
+    $currentState->save();
+
+
+    return response()->json($currentState);
+  }
+
+  public function exchangeAuthCodeForTokenAndProfile(Request $request)
+  {
+    $storeHash = $this->getStoreHash($request);
+
+    $userProfile = [
+      "store_hash" => $storeHash,
+      "id" => 2,
+      "email" => 'janet.weaver@reqres.in',
+      "first_name" => 'Janet',
+      "last_name" => 'Weaver',
+      "avatar" => 'https://reqres.in/img/faces/2-image.jpg'
+    ];
+
+    $currentState = Onboard::firstWhere('store_hash', $storeHash);
+
+    $currentState->platformAccessToken = 'ABCD-123456789';
+    $currentState->platformBusinessId = '123456789';
+    $currentState->platformAccountId = '101112131415';
+    $currentState->platformAnalyticsId = 'AN-1234-5678';
+    $currentState->platformUserProfile = $userProfile;
+
+    $currentState->save();
+
+    return response()->json($currentState);
   }
 }
