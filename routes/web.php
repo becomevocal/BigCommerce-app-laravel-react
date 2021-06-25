@@ -14,8 +14,6 @@ use App\Http\Controllers\AppController;
 |
 */
 
-Route::get('/api/accessToken', [AppController::class, "getAccessToken"]);
-
 Route::get('/api/state', [AppController::class, "getOnboardedState"]);
 Route::post('/api/state', [AppController::class, "setOnboardedState"]);
 

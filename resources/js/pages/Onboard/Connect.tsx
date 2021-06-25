@@ -7,7 +7,7 @@ import {
 } from "@bigcommerce/big-design";
 import React, { useCallback, useEffect, useState } from "react";
 import { LoadingPanel } from "../../components/LoadingPanel";
-import OnboardingActionBar from "../../components/OnboardingActionBar";
+import { OnboardingActionBar } from "../../components/OnboardingActionBar";
 import { OnboardingHeader } from "../../components/OnboardingHeader";
 import { useConnectPopup } from "../../hooks/useConnectPopup";
 import { useExchangeAuthCode } from "../../hooks/useExchangeAuthCode";
@@ -42,10 +42,9 @@ const Connect: React.FC = () => {
                 ...data,
                 status: "step_connection_ready",
             };
-            const userData = JSON.parse(data.platformUserProfile!);
             setUserProfile({
-                email: userData.email,
-                avatar: userData.avatar,
+                email: data.platformUserProfile!.email,
+                avatar: data.platformUserProfile!.avatar,
             });
             nextStepRedirect(newState);
             setOnboardedState(newState);
@@ -104,8 +103,7 @@ const Connect: React.FC = () => {
 
     useEffect(() => {
         if (authReady && !userProfile && onboardedState?.platformUserProfile) {
-            const userData = JSON.parse(onboardedState.platformUserProfile);
-            const { email, avatar } = userData;
+            const { email, avatar } = onboardedState.platformUserProfile;
             setUserProfile({ email, avatar });
         }
     }, [authReady, userProfile, onboardedState?.platformUserProfile]);
