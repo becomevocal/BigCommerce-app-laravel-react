@@ -1,15 +1,15 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter, Switch, Route } from "react-router-dom";
-import { GlobalStyles, Box } from "@bigcommerce/big-design";
+import { GlobalStyles, Box, AlertsManager } from "@bigcommerce/big-design";
 import { createTheme } from "@bigcommerce/big-design-theme";
 import { createGlobalStyle, ThemeProvider } from "styled-components";
 
-import Products from "./pages/Products";
-import ProductDetails from "./pages/ProductDetails";
 import Onboard from "./pages/Onboard/Onboard";
 import { QueryClient, QueryClientProvider } from "react-query";
 import Overview from "./pages/Overview/Overview";
+import { useAlertsManager } from "./hooks/useAlertsManager";
+import FakeAuthPage from "./pages/FakeAuthPage";
 
 export const queryClient = new QueryClient({
     defaultOptions: {
@@ -31,6 +31,8 @@ const AppGlobalStyles = createGlobalStyle`
 `;
 
 const App: React.FC = () => {
+    const alertsManager = useAlertsManager();
+
     return (
         <>
             <Box marginHorizontal="xxxLarge" marginVertical="xxLarge">
@@ -38,17 +40,16 @@ const App: React.FC = () => {
                     <ThemeProvider theme={theme}>
                         <AppGlobalStyles />
                         <GlobalStyles />
-                        {/* <AlertsManager manager={alertsManager} /> */}
+                        <AlertsManager manager={alertsManager} />
                         <BrowserRouter>
                             <Switch>
+                                <Route
+                                    path="/fake_auth_page"
+                                    component={FakeAuthPage}
+                                />
                                 <Route path="/overview" component={Overview} />
                                 <Route path="/onboard" component={Onboard} />
-                                <Route path="/products" component={Products} />
-                                <Route
-                                    path="/products/:id"
-                                    component={ProductDetails}
-                                />
-                                <Route component={Onboard} />
+                                <Route path="/" component={Onboard} />
                             </Switch>
                         </BrowserRouter>
                     </ThemeProvider>

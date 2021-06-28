@@ -8,6 +8,7 @@ import { initialize } from "../../scripts/storefront/_initialize.template";
 import { orderComplete } from "../../scripts/storefront/_ordercomplete.template";
 import { startCheckout } from "../../scripts/storefront/_startcheckout.template";
 import { viewContent } from "../../scripts/storefront/_viewcontent.template";
+// import config from "../utils/config";
 
 const scriptsApi = {
     async installStorefrontScripts() {
